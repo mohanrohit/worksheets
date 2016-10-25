@@ -1,53 +1,54 @@
 # number types
 
-import random
+end = 0
 
 class Number(object):
   def __init__(self):
     pass
+  end
 
   def value(self):
     raise Exception, "value() for %s is not implemented." % self.__class__.__name__
+  end
+end
 
 class DiscreteNumber(Number):
-  def __init__(self, value):
-    self.value = value
+  def __init__(self, n):
+    self.n = n
+  end
 
   def value(self):
-    return self.number
+    return self.n
+  end
+
+  def __repr__(self):
+    return str(self.n)
+  end
+end
 
 class Fraction(Number):
-  def __init__(self, value):
-    self.numerator = value[0]
-    self.denominator = value[1]
+  def __init__(self, numerator, denominator):
+    self.numerator = numerator
+    self.denominator = denominator
+  end
 
   def value(self):
-    numerator = self.numerator_generator.run()
+    return (self.numerator, self.denominator)
+  end
 
-    while True:
-      denominator = self.denominator_generator.run()
-      if denominator != 0:
-        break
-
-    if not self.allow_mixed and numerator > denominator:
-      numerator, denominator = denominator, numerator
-
-    return (numerator, denominator)
+  def __repr__(self):
+    return str(self.numerator) + "/" + str(self.denominator)
+end
 
 class Decimal(Number):
-  def __init__(self, **kwargs):
-    pass
-    #self.whole_part_generator = Integer(
+  def __init__(self, d):
+    self.d = d
+  end
 
-def main():
-  d1 = DiscreteNumber(max=5, min=100, exclude_zero=False)
-  print d1.run()
+  def value(self):
+    return self.d
+  end
 
-  f1 = Fraction(
-    numerator=DiscreteNumber(min=4, max=15),
-    denominator=DiscreteNumber(min=10, max=100, exclude_zero=True, allow_mixed=False)
-  )
-
-  print f1.run()
-
-main()
+  def __repr__(self):
+    return str(self.d)
+end

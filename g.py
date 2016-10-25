@@ -1,36 +1,63 @@
-# generate a number
+﻿# generate a number
+
+end = 0
 
 import random
+
+from t import DiscreteNumber, Fraction, Decimal
 
 class NumberGenerator(object):
   def __init__(self):
     pass
+  end
 
   def run(self):
     raise Exception, "run() for %s is not implemented." % self.__class__.__name__
+  end
+end
+
+class SymbolGenerator(object):
+  def __init__(self):
+    pass
+  end
+
+  def run(self):
+    raise Exception, "run() for %s is not implemented." % self.__class__.__name__
+  end
+end
 
 class DiscreteNumberGenerator(NumberGenerator):
   def __init__(self, **kwargs):
     self.allow_zero = kwargs.get("allow_zero", True)
 
-    self.min = kwargs["min"] if "min" in kwargs else 0 if self.allow_zero else 1
-    self.max = kwargs["max"] if "max" in kwargs else 10
+    self.min = kwargs.get("min", 0 if self.allow_zero else 1)
+    self.max = kwargs.get("max", 10)
 
     if self.max < self.min:
       self.max, self.min = self.min, self.max
+    end
+  end
 
   def run(self):
-    number = random.randint(self.min, self.max)
-    while number == 0:
+    while True:
       number = random.randint(self.min, self.max)
+      if number == 0 and not self.allow_zero:
+        continue
+      end
 
-    return number
+      break
+    end
+
+    return DiscreteNumber(number)
+  end
+end
 
 class FractionGenerator(NumberGenerator):
   def __init__(self, **kwargs):
-    self.numerator_generator = kwargs["numerator"] if "numerator" in kwargs else DiscreteNumberGenerator(**kwargs)
-    self.denominator_generator = kwargs["denominator"] if "denominator" in kwargs else DiscreteNumberGenerator(**kwargs)
+    self.numerator_generator = kwargs.get("numerator", DiscreteNumberGenerator(**kwargs))
+    self.denominator_generator = kwargs.get("denominator", DiscreteNumberGenerator(**kwargs))
     self.allow_mixed = kwargs.get("allow_mixed", False)
+  end
 
   def run(self):
     numerator = self.numerator_generator.run()
@@ -39,44 +66,39 @@ class FractionGenerator(NumberGenerator):
       denominator = self.denominator_generator.run()
       if denominator != 0:
         break
+      end
+    end
 
     if not self.allow_mixed and numerator > denominator:
       numerator, denominator = denominator, numerator
+    end
 
-    return (numerator, denominator)
+    return Fraction(numerator, denominator)
+  end
+end
 
 class DecimalGenerator(NumberGenerator):
   def __init__(self, **kwargs):
-    self.max_decimals = kwargs["max_decimals"] if "max_decimals" in kwargs else 2
+    self.max_decimals = kwargs.get("max_decimals", 2)
 
     self.whole_part_generator = DiscreteNumberGenerator(**kwargs)
-    self.fractional_part_generator = DiscreteNumberGenerator(max=10 ** self.max_decimals - 1, min=1)
+    self.fractional_part_generator = DiscreteNumberGenerator(max=10 ** self.max_decimals - 1, min=0)
+  end
 
   def run(self):
     whole_part = self.whole_part_generator.run()
     fractional_part = self.fractional_part_generator.run()
 
-    return whole_part + (fractional_part * 1.0) / 10 ** self.max_decimals
+    return Decimal(whole_part.value() + (fractional_part.value() * 1.0) / 10 ** self.max_decimals)
+  end
+end
 
-def main():
-  d1 = DiscreteNumberGenerator(max=5, min=100, allow_zero=True)
-  print d1.run()
+class OperatorGenerator(SymbolGenerator):
+  def __init__(self, **kwargs):
+    self.operators = kwargs.get("operators", ["+", "-", "*", "/"])
+  end
 
-  f1 = FractionGenerator(
-    numerator=DiscreteNumberGenerator(min=4, max=15),
-    denominator=DiscreteNumberGenerator(min=10, max=100, allow_zero=False, allow_mixed=False)
-  )
-
-  print f1.run()
-
-  f2 = FractionGenerator(
-    numerator=DecimalGenerator(max_decimals=2, min=10, max=50),
-    denominator=DiscreteNumberGenerator(min=10, max=100, allow_zero=False, allow_mixed=False)
-  )
-
-  print f2.run()
-
-  d1 = DecimalGenerator(max_decimals=4, max=50, min=-20)
-  print d1.run()
-
-main()
+  def run(self):
+    return random.choice(self.operators)
+  end
+end
